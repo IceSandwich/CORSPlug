@@ -31,11 +31,17 @@ class CORSPlug {
         }
     }
 
-    static New(host: string, corsPlugPort = 11451) {
+    static New(host: string, corsPlugPort = 11451, removeHeaders: string[] | null = null) {
         var sessionId = ""
 
+        var url = `http://127.0.0.1:${corsPlugPort}/require_permission?host=${host}`
+
+        if (removeHeaders!= null) {
+            url += `&removeHeaders=${removeHeaders.join(",")}`
+        }
+
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", `http://127.0.0.1:${corsPlugPort}/require_permission?host=${host}`, false)
+        xhr.open("GET", url, false)
         xhr.send()
         if (xhr.readyState === 4 && xhr.status === 200) {
             var jsonResponse = JSON.parse(xhr.responseText);

@@ -16,8 +16,9 @@ import (
 )
 
 type Session struct {
-	Origin     string
-	TargetHost string
+	Origin        string
+	TargetHost    string
+	RemoveHeaders []string
 }
 
 type Application struct {
@@ -171,8 +172,9 @@ func (ins *Application) httpRequirePermission(w http.ResponseWriter, r *http.Req
 	}
 
 	session := Session{
-		Origin:     origin,
-		TargetHost: targetHost,
+		Origin:        origin,
+		TargetHost:    targetHost,
+		RemoveHeaders: strings.Split(strings.ReplaceAll(r.FormValue("removeHeaders"), " ", ""), ","),
 	}
 	sessionID := strings.ReplaceAll(uuid.New().String(), "-", "")
 	ins.Sessions[sessionID] = session
@@ -223,7 +225,17 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 复制原请求的头部信息
 	for key, value := range r.Header {
-		req.Header[key] = value
+		contain := false
+		for _, v := range session.RemoveHeaders {
+			if v == key {
+				contain = true
+				break
+			}
+		}
+
+		if !contain {
+			req.Header[key] = value
+		}
 	}
 
 	// 发起请求
