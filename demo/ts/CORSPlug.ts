@@ -16,12 +16,19 @@ class CORSPlug {
         return xhr
     }
 
-    Post(url: string, content_type: string, data: any = null) {
+    Post(url: string, content_type: string, data: any, asyncFunc: ((xhr: XMLHttpRequest) => void) | null  = null) {
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", this.refineRawURL(url), false)
+        xhr.open("POST", this.refineRawURL(url), asyncFunc != null)
         xhr.setRequestHeader('Content-Type', content_type);
+        if (asyncFunc != null) {
+            xhr.onload = () => {
+                asyncFunc(xhr);
+            }
+        }
         xhr.send(data)
-        return xhr
+        if (asyncFunc == null) {
+            return xhr
+        }
     }
 
     static New(host: string, corsPlugPort = 11451) {
