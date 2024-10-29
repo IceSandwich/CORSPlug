@@ -65,10 +65,16 @@ func NewApplication(port int) (_ *Application, err error) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/require_permission", ins.httpRequirePermission)
-	mux.HandleFunc("/*", ins.httpHandler)
+	mux.HandleFunc("/", ins.httpHandler)
 	ins.Server = &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%d", port),
 		Handler: mux,
+		// Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 	mux.ServeHTTP(w, r)
+		// 	if w.Header().Get("Content-Type") == "" {
+		// 		ins.httpHandler(w, r)
+		// 	}
+		// }),
 	}
 	return ins, nil
 }
@@ -197,6 +203,14 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent) // 返回 204
+		return
+	}
+
 	targetURL := "http://" + session.TargetHost + "/" + requestPath
 	log.Info("Proxy: /", requestPath, " --> ", targetURL)
 
@@ -229,8 +243,8 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 将目标服务器的响应写回原请求的响应
-	w.Header().Set("Access-Control-Allow-Origin", session.Origin)
 	w.WriteHeader(resp.StatusCode)
+	w.Header().Set("Access-Control-Allow-Origin", session.Origin)
 	w.Write(body)
 }
 
