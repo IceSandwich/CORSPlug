@@ -224,14 +224,14 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 	// 复制原请求的头部信息
 	corsplugHeaders := make(map[string][]string)
 	for key, value := range r.Header {
-		if strings.HasPrefix(key, "CORSPlug-") {
-			corsplugHeaders[strings.TrimPrefix(key, "CORSPlug-")] = value
+		if strings.HasPrefix(key, "Corsplug-") {
+			corsplugHeaders[strings.TrimPrefix(key, "Corsplug-")] = value
 		} else {
 			req.Header[key] = value
 		}
 	}
 
-	if removeHeaders, hasRemoveHeaders := corsplugHeaders["RemoveHeaders"]; hasRemoveHeaders {
+	if removeHeaders, hasRemoveHeaders := corsplugHeaders["Removeheaders"]; hasRemoveHeaders {
 		for _, headerName := range strings.Split(strings.ReplaceAll(removeHeaders[0], " ", ""), ",") {
 			req.Header.Del(headerName)
 		}
