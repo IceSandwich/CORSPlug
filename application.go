@@ -16,9 +16,8 @@ import (
 )
 
 type Session struct {
-	Origin        string
-	TargetHost    string
-	RemoveHeaders []string
+	Origin     string
+	TargetHost string
 }
 
 type Application struct {
@@ -172,9 +171,8 @@ func (ins *Application) httpRequirePermission(w http.ResponseWriter, r *http.Req
 	}
 
 	session := Session{
-		Origin:        origin,
-		TargetHost:    targetHost,
-		RemoveHeaders: strings.Split(strings.ReplaceAll(r.FormValue("removeHeaders"), " ", ""), ","),
+		Origin:     origin,
+		TargetHost: targetHost,
 	}
 	sessionID := strings.ReplaceAll(uuid.New().String(), "-", "")
 	ins.Sessions[sessionID] = session
@@ -208,7 +206,7 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.WriteHeader(http.StatusNoContent) // 返回 204
 		return
 	}
@@ -224,17 +222,18 @@ func (ins *Application) httpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 复制原请求的头部信息
+	corsplugHeaders := make(map[string][]string)
 	for key, value := range r.Header {
-		contain := false
-		for _, v := range session.RemoveHeaders {
-			if v == key {
-				contain = true
-				break
-			}
-		}
-
-		if !contain {
+		if strings.HasPrefix(key, "CORSPlug-") {
+			corsplugHeaders[strings.TrimPrefix(key, "CORSPlug-")] = value
+		} else {
 			req.Header[key] = value
+		}
+	}
+
+	if removeHeaders, hasRemoveHeaders := corsplugHeaders["RemoveHeaders"]; hasRemoveHeaders {
+		for _, headerName := range strings.Split(strings.ReplaceAll(removeHeaders[0], " ", ""), ",") {
+			req.Header.Del(headerName)
 		}
 	}
 

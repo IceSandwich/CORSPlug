@@ -54,12 +54,16 @@ interface OllamaGenerateResponse {
 
 class Ollama {
     private m_net: CORSPlug
+    private m_defaultHeader: Map<string, string>
     private constructor(net: CORSPlug) {
         this.m_net = net;
+
+        this.m_defaultHeader = new Map();
+        this.m_defaultHeader.set("CORSPlug-RemoveHeaders", "Origin");
     }
 
     ListModels() {
-        var xhr = this.m_net.Get("/api/tags");
+        var xhr = this.m_net.Get("/api/tags", this.m_defaultHeader);
         var models: OllamaTagsResponse[] = JSON.parse(xhr.responseText)["models"];
         return models;
     }
@@ -67,7 +71,7 @@ class Ollama {
     Generate(request: OllamaGenerateRequest, callback: (response: OllamaGenerateResponse) => void) {
         this.m_net.Post("/api/generate", 'application/json;charset=UTF-8', JSON.stringify(request), (xhr) => {
             callback(JSON.parse(xhr.responseText));
-        });
+        }, this.m_defaultHeader);
     }
 
     static New(corsPlug: CORSPlug) {

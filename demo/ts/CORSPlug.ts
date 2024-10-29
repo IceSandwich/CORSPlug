@@ -9,17 +9,27 @@ class CORSPlug {
         return `http://127.0.0.1:${this.m_corsPlugPort}/${this.m_sessionID}${url}`
     }
 
-    Get(url: string) {
+    Get(url: string, headers: Map<string, string> | null = null) {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", this.refineRawURL(url), false)
+        if (headers != null) {
+            for (let [key, value] of headers) {
+                xhr.setRequestHeader(key, value);
+            }
+        }
         xhr.send()
         return xhr
     }
 
-    Post(url: string, content_type: string, data: any, asyncFunc: ((xhr: XMLHttpRequest) => void) | null  = null) {
+    Post(url: string, content_type: string, data: any, asyncFunc: ((xhr: XMLHttpRequest) => void) | null  = null, headers: Map<string, string> | null = null) {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", this.refineRawURL(url), asyncFunc != null)
         xhr.setRequestHeader('Content-Type', content_type);
+        if (headers != null) {
+            for (let [key, value] of headers) {
+                xhr.setRequestHeader(key, value);
+            }
+        }
         if (asyncFunc != null) {
             xhr.onload = () => {
                 asyncFunc(xhr);
@@ -31,14 +41,10 @@ class CORSPlug {
         }
     }
 
-    static New(host: string, corsPlugPort = 11451, removeHeaders: string[] | null = null) {
+    static New(host: string, corsPlugPort = 11451) {
         var sessionId = ""
 
         var url = `http://127.0.0.1:${corsPlugPort}/require_permission?host=${host}`
-
-        if (removeHeaders!= null) {
-            url += `&removeHeaders=${removeHeaders.join(",")}`
-        }
 
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, false)

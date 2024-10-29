@@ -16,7 +16,7 @@ function init() {
 }
 
 function onClickGetPermission() {
-    var corsPlug = CORSPlug.New("127.0.0.1:11434", 11451, ["Origin"])
+    var corsPlug = CORSPlug.New("127.0.0.1:11434")
     if (corsPlug != null) {
         ollama = Ollama.New(corsPlug);
         init();
