@@ -106,6 +106,8 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "ts/**/*.ts"
+    "ts/**/*.ts",
+    "ollama/ts/**/*.ts",
+    "sdforge/ts/**/*.ts"
   ]
 }
